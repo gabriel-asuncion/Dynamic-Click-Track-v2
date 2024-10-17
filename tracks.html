@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Premium Metronome Studio</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+  
+  <style>
+    body {
+      background-color: #1c1c1e;
+      color: #ffffff;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .container {
+      background-color: #2a2a2d;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+    }
+
+    h1 {
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: #ffffff;
+    }
+
+    #current-bpm, #next-tempo {
+      font-size: 2.5em;
+      font-weight: 700;
+      color: #ffcc00;
+    }
+
+    #start-stop {
+      background: linear-gradient(145deg, #ff6a00, #ff8c00);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      font-size: 1.2em;
+      border-radius: 8px;
+      box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+      transition: all 0.2s ease;
+    }
+
+    #start-stop:hover {
+      background: linear-gradient(145deg, #ff8c00, #ffaf00);
+    }
+
+    .beat-display {
+      font-size: 4em;
+      font-weight: bold;
+      color: #00ffcc;
+    }
+
+    .one-time-button {
+      font-weight: 500;
+      background-color: #333;
+      color: white;
+      border: none;
+      padding: 16px 24px;
+      font-size: 1.2em;
+      border-radius: 10px;
+      transition: background-color 0.2s ease, transform 0.2s ease;
+      box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.4);
+    }
+
+    .one-time-button:hover {
+      background-color: #555;
+      transform: translateY(-2px);
+    }
+
+    .one-time-button.active {
+      background-color: #00ffcc;
+      color: #000;
+      box-shadow: 0px 6px 12px rgba(0, 255, 204, 0.6);
+    }
+
+    .one-time-button.queued {
+      background-color: #ffcc00;
+      color: #000;
+    }
+
+    .volume-container {
+      margin-top: 20px;
+    }
+
+    #volume {
+      width: 100%;
+      background: linear-gradient(145deg, #4a4a4d, #5a5a5f);
+      border-radius: 12px;
+    }
+
+    label {
+      color: #ffcc00;
+      font-weight: 500;
+    }
+
+    /* Add grid layout for number keypad feel */
+    .button-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      grid-gap: 15px;
+      margin-top: 20px;
+    }
+	.display-grid{
+		
+		display: grid;
+		text-align: center;
+		grid-template-columns: repeat(3, 1fr);
+		grid-gap: 15px;
+		margin-top: 20px;
+	}
+	.timestamp {
+		margin: auto;
+      font-size: 1.5em;
+      color: #ffcc00;
+    }
+	.count-up {
+	margin: auto;
+      font-size: 1.5em;
+      color: #00ffcc;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container text-center mt-5">
+    <h1>Dynamic Click Track</h1>
+
+    <div class="row mb-4">
+      <div class="col">
+        <p class="h5">Current BPM:</p>
+        <h2 id="current-bpm">120</h2>
+      </div>
+      <div class="col">
+        <p class="h5">Next Song BPM:</p>
+        <input type="text" id="next-tempo" class="form-control text-center w-50 mx-auto" value="120">
+      </div>
+    </div>
+
+    <div class="controls mb-4">
+      <button id="start-stop" class="btn">Start</button>
+    </div>
+	
+	<div class="display-grid">
+		<div class="timestamp">
+		Runtime
+		<div id="timestamp">00:00:00.00</div>
+		</div>
+		<div class="beat-display" id="beat-display">1</div>
+		<div class="count-up">
+			Beats
+			<div id="count-up">0</div>
+		</div>
+	</div>
+  </div>
+
+  <div class="container text-center mt-3">
+    <div class="button-grid">
+      <button class="btn one-time-button" data-beat="1" data-sound="one-time-sound-1">First Verse</button>
+      <button class="btn one-time-button" data-beat="2" data-sound="one-time-sound-2">Second Verse</button>
+      <button class="btn one-time-button" data-beat="3" data-sound="one-time-sound-3">Third Verse</button>
+      <button class="btn one-time-button" data-beat="4" data-sound="one-time-sound-4">Pre-Chorus</button>
+      <button class="btn one-time-button" data-beat="5" data-sound="one-time-sound-5">Chorus</button>
+      <button class="btn one-time-button" data-beat="6" data-sound="one-time-sound-6">Bridge</button>
+      <button class="btn one-time-button" data-beat="7" data-sound="one-time-sound-7">Intro</button>
+      <button class="btn one-time-button" data-beat="8" data-sound="one-time-sound-8">Interlude</button>
+    </div>
+
+    <div class="mt-3">
+      <button id="next-song" class="btn one-time-button" data-beat="14" data-sound="one-time-sound-11">Next Song</button>
+    </div>
+  </div>
+
+  <div class="container text-center mt-3">
+    <div class="volume-container">
+      <label for="volume" class="form-label">Volume:</label>
+      <input type="range" id="volume" class="form-range" min="0" max="1" step="0.1" value="1">
+    </div>
+  </div>
+
+  <audio id="first-beat-sound" src="metrofirst.wav" preload="auto"></audio>
+  <audio id="regular-beat-sound" src="metroreg.mp3" preload="auto"></audio>
+  <audio id="one-time-sound-1" src="firstv.mp3" preload="auto"></audio>
+  <audio id="one-time-sound-2" src="secondv.mp3" preload="auto"></audio>
+  <audio id="one-time-sound-3" src="thirdv.mp3" preload="auto"></audio>
+  <audio id="one-time-sound-4" src="prechor.mp3" preload="auto"></audio>
+  <audio id="one-time-sound-5" src="chorus.mp3" preload="auto"></audio>
+  <audio id="one-time-sound-6" src="bridge.mp3" preload="auto"></audio>
+  <audio id="one-time-sound-7" src="intro.mp3" preload="auto"></audio>
+  <audio id="one-time-sound-8" src="intro.mp3" preload="auto"></audio>
+  <audio id="one-time-sound-10" src="4.mp3" preload="auto"></audio>
+  <audio id="one-time-sound-11" src="3.mp3" preload="auto"></audio>
+  <audio id="one-time-sound-12" src="2.mp3" preload="auto"></audio>
+  <audio id="one-time-sound-13" src="1.mp3" preload="auto"></audio>
+  <audio id="one-time-sound-14" src="next song.mp3" preload="auto"></audio>
+  <!-- One-time sounds omitted for brevity -->
+  <!-- Ensure to add your audio sources for one-time sounds here -->
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        let isPlaying = false;
+        let bpm = 120;
+        let nextBpm = 120; // Default BPM for the next song
+        let intervalId;
+        let timestampIntervalId; // Separate interval for the timestamp
+        let beatCount = 0;  // Start the beat count at 1
+        let beatMeasure = 0;
+        const currentBpmDisplay = document.getElementById('current-bpm'); // The h2 element to display BPM
+        const nextTempoInput = document.getElementById('next-tempo'); // New BPM input field
+        const startStopButton = document.getElementById('start-stop');
+        const beatDisplay = document.getElementById('beat-display'); // Display for current beat
+        const firstBeatSound = document.getElementById('first-beat-sound');
+        const timestampEl = document.getElementById("timestamp");
+        const regularBeatSound = document.getElementById('regular-beat-sound');
+        const volumeControl = document.getElementById('volume');
+        const countUpEl = document.getElementById("count-up");
+        const nextSongButton = document.getElementById("next-song"); // The button for the next song
+
+        let queuedBpm = null; // Variable to hold the queued BPM change
+        let playOnceQueue = null; // Queue for one-time sounds
+        let playAdditionalSounds = false; // Flag for playing additional sounds
+        let startTime;
+
+        function updateTimestamp() {
+            const now = Date.now();
+            const timeElapsed = now - startTime; // Get elapsed time in milliseconds
+            const hours = Math.floor(timeElapsed / 3600000); // Calculate hours
+            const minutes = Math.floor((timeElapsed % 3600000) / 60000); // Calculate minutes
+            const seconds = Math.floor((timeElapsed % 60000) / 1000); // Calculate seconds
+            const milliseconds = Math.floor((timeElapsed % 1000) / 10); // Calculate milliseconds (to two digits)
+
+            // Update the timestamp display
+            timestampEl.textContent = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(milliseconds).padStart(2, '0')}`;
+        }
+
+        function updateCount() {
+            beatMeasure++;
+            countUpEl.textContent = beatMeasure;
+        }
+
+        // Set initial volume
+        firstBeatSound.volume = volumeControl.value;
+        regularBeatSound.volume = volumeControl.value;
+
+        // Volume Change Event Listener
+        volumeControl.addEventListener('input', function() {
+            const volume = this.value;
+            firstBeatSound.volume = volume;
+            regularBeatSound.volume = volume;
+            // Update all one-time sounds
+            for (let i = 1; i <= 14; i++) {
+                const sound = document.getElementById(`one-time-sound-${i}`);
+                if (sound) {
+                    sound.volume = volume;
+                }
+            }
+        });
+
+        // Function to start the metronome
+        function startMetronome() {
+            beatCount = 0;  // Reset beat count to 1 on start
+            startTime = Date.now(); // Initialize start time
+            playBeat(); // Play the first beat immediately
+            const interval = 60000 / bpm; // Calculate interval in ms
+            intervalId = setInterval(() => {
+                playBeat();
+            }, interval);
+
+            // Start updating the timestamp continuously
+            timestampIntervalId = setInterval(updateTimestamp, 10); // Update timestamp every 10ms
+        }
+
+        // Function to play a sound with proper handling
+        function playSound(sound) {
+            sound.pause();
+            sound.currentTime = 0;
+            sound.play();
+        }
+
+        // Function to play the correct beat sound
+        function playBeat() {
+            // Loop through the beats (1 to 8)
+            beatCount = (beatCount % 8) + 1;
+
+            // Play first beat sound on both the 1st and 5th beats
+            if (beatCount === 1) {
+                playSound(firstBeatSound);
+                updateCount();
+
+                // Change the BPM only if there is a queued BPM change
+                if (queuedBpm !== null) {
+                    bpm = queuedBpm; // Update BPM to the queued BPM
+                    currentBpmDisplay.textContent = bpm; // Update displayed BPM
+                    clearInterval(intervalId); // Clear the previous interval
+                    const newInterval = 60000 / bpm; // Recalculate interval in ms based on the new BPM
+                    intervalId = setInterval(() => {
+                        playBeat();
+                    }, newInterval); // Start a new interval
+                    queuedBpm = null; // Clear the queued BPM after applying
+                }
+            } else if (beatCount === 5) {
+                playSound(firstBeatSound); // Play first beat sound on the 5th beat
+            } else {
+                // Play regular beat sound for beats other than the 1st and 5th
+                playSound(regularBeatSound);
+            }
+
+            // Highlight the active button
+            const activeButton = document.querySelector(`.one-time-button[data-beat="${beatCount}"]`);
+            if (activeButton) {
+                activeButton.classList.add('active');
+                setTimeout(() => {
+                    activeButton.classList.remove('active'); // Remove highlight after a brief moment
+                }, 200);
+            }
+
+            // On the 2nd beat, check if there is a queued one-time sound
+            if (beatCount === 2 && playOnceQueue) {
+                const oneTimeSound = document.getElementById(`one-time-sound-${playOnceQueue}`);
+                if (oneTimeSound) {
+                    playSound(oneTimeSound);
+
+                    // Reset the queued button and clear the queue
+                    const queuedButton = document.querySelector(`.one-time-button[data-beat="${playOnceQueue}"]`);
+                    if (queuedButton) {
+                        queuedButton.classList.remove('queued'); // Reset button color to default
+                        playAdditionalSounds = true; // Set a flag to play the next sounds
+                    }
+
+                    // Clear the queue after playing
+                    playOnceQueue = null;
+                }
+            }
+            if (playAdditionalSounds) {
+                // Play follow-up sounds based on the current beat
+                if (beatCount === 5) {
+                    playSound(document.getElementById('one-time-sound-10')); // Play sound-10 on the 5th beat
+                } else if (beatCount === 6) {
+                    playSound(document.getElementById('one-time-sound-11')); // Play sound-11 on the 6th beat
+                } else if (beatCount === 7) {
+                    playSound(document.getElementById('one-time-sound-12')); // Play sound-12 on the 7th beat
+                } else if (beatCount === 8) {
+                    playSound(document.getElementById('one-time-sound-13')); // Play sound-13 on the 8th beat
+                    playAdditionalSounds = false;
+                }
+            }
+
+            // Update the beat display
+            beatDisplay.textContent = beatCount;
+        }
+
+        // One-time button click event listener
+        const oneTimeButtons = document.querySelectorAll('.one-time-button');
+        oneTimeButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const beat = parseInt(this.getAttribute('data-beat'));
+
+                // If the button is already queued, remove it (toggle off)
+                if (this.classList.contains('queued')) {
+                    this.classList.remove('queued');
+                    // Only clear the queue if it matches the currently queued button
+                    if (playOnceQueue === beat) {
+                        playOnceQueue = null;  // Clear the queue
+                    }
+                } else {
+                    // Clear any previously queued buttons
+                    oneTimeButtons.forEach(btn => btn.classList.remove('queued'));
+
+                    // Set the selected beat to be queued
+                    playOnceQueue = beat;
+
+                    // Highlight the button to indicate it's queued
+                    this.classList.add('queued');
+                }
+            });
+        });
+
+        // Next song button click event listener
+        nextSongButton.addEventListener('click', function() {
+            // Set the queued BPM from the next tempo input
+            queuedBpm = parseInt(nextTempoInput.value); // Update queued BPM
+            currentBpmDisplay.textContent = queuedBpm; // Optionally update the display to show the next BPM
+        });
+
+        // Start/Stop button event listener
+        startStopButton.addEventListener('click', function() {
+            if (!isPlaying) {
+                bpm = parseInt(nextTempoInput.value); // Update BPM from input
+                currentBpmDisplay.textContent = bpm; // Update displayed BPM
+                startMetronome(); // Start the metronome
+                startStopButton.textContent = "Stop"; // Change button text to Stop
+                isPlaying = true;
+            } else {
+                clearInterval(intervalId); // Stop the metronome
+                clearInterval(timestampIntervalId); // Stop the timestamp update
+                startStopButton.textContent = "Start"; // Change button text to Start
+                isPlaying = false;
+                // Clear the queue if the metronome is stopped
+                playOnceQueue = null;
+                queuedBpm = null;
+            }
+        });
+    });
+</script>
+
+
+
+
+</body>
+</html>
